@@ -39,7 +39,7 @@ public class UsuarioService {
 	public Usuario buscarPorEmail(String email) {
 		return usuarioRepository.findByEmail(email)
 				.orElseThrow(() ->
-						new RuntimeException("Usuário não encontradp"));
+						new RuntimeException("Usuário não encontrado"));
 	}
 	
 	public Usuario buscarPorId(Long id) {
