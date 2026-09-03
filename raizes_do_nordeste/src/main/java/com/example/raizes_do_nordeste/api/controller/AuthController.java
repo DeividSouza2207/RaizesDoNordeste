@@ -9,7 +9,7 @@ import com.example.raizes_do_nordeste.api.dto.LoginRequest;
 import com.example.raizes_do_nordeste.api.dto.LoginResponse;
 import com.example.raizes_do_nordeste.application.service.AuthService;
 
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/auth")

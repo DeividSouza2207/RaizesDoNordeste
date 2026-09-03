@@ -37,7 +37,7 @@ public class Usuario {
 	private Role role;
 	
 	@Column(name="ativo", nullable = false)
-	private boolean ativo;
+	private boolean ativo = true;
 	
 	@Column(name="consentimento", nullable = false)
 	private boolean consentimentoLGPD = false;

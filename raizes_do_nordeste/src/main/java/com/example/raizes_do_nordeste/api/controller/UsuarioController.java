@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.raizes_do_nordeste.application.service.UsuarioService;
 import com.example.raizes_do_nordeste.domain.entity.Usuario;
 
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping({"/usuarios"})
