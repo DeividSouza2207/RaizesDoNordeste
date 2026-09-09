@@ -1,5 +1,7 @@
 package com.example.raizes_do_nordeste.api.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,6 +35,14 @@ public class UsuarioController {
 				.status(HttpStatus.CREATED)
 				.body(usuarioCadastrado);
 	}
+	
+	 @GetMapping
+	    public ResponseEntity<List<Usuario>> listar() {
+
+	        return ResponseEntity.ok(
+	                usuarioService.listarTodos()
+	        );
+	    }
 	
 	@GetMapping("/{id}")
 	public ResponseEntity<Usuario> buscarPorId(@PathVariable Long id) {

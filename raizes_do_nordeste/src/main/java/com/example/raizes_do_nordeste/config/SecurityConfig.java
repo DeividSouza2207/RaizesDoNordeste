@@ -70,12 +70,16 @@ public class SecurityConfig {
 					.requestMatchers(HttpMethod.PATCH, "/pedidos/*/status")
 						.hasAnyRole("COZINHEIRO", "GERENTE", "ADMIN")
 						
-					.requestMatchers("/admin/")
-						.hasRole("ADMIN")
+					.requestMatchers("/admin/**")
+					    .hasRole("ADMIN")
 					
-					.anyRequest().authenticated())
-				
-				.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {}));
+					.anyRequest().authenticated()
+				)
+				.oauth2ResourceServer(oauth2 -> oauth2
+				    .jwt(jwt -> jwt
+				        .jwtAuthenticationConverter(jwtAuthenticationConverter())
+				    )
+				);
 			
 			return http.build();
 	}

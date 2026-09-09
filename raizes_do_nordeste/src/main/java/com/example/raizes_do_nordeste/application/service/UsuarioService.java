@@ -1,6 +1,8 @@
 package com.example.raizes_do_nordeste.application.service;
 
 
+import java.util.List;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -41,6 +43,10 @@ public class UsuarioService {
 				.orElseThrow(() ->
 						new RuntimeException("Usuário não encontrado"));
 	}
+	
+	public List<Usuario> listarTodos() {
+        return usuarioRepository.findAll();
+    }
 	
 	public Usuario buscarPorId(Long id) {
 		
