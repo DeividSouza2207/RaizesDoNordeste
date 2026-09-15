@@ -60,18 +60,29 @@ public class SecurityConfig {
 		http.csrf(csrf -> csrf.disable())
 			.authorizeHttpRequests(auth -> auth
 					.requestMatchers(
-						"/auth/**",
-						"/usuarios",
-						"/swagger-ui/**",
-						"/v3/api-docs/**").permitAll()
-					.requestMatchers(HttpMethod.POST, "/pedidos")
-						.hasAnyRole("CLIENTE", "ATENDENTE")
+						    "/auth/**",
+						    "/swagger-ui/**",
+						    "/v3/api-docs/**").permitAll()
+						// Permite acessar POST/usuarios sem token
+						.requestMatchers(HttpMethod.POST, "/usuarios")
+						    .permitAll()
+
+						// Permite que apenas GERENTE e ADMIN acessem GET/usuarios
+						.requestMatchers(HttpMethod.GET, "/usuarios")
+						    .hasAnyRole("GERENTE", "ADMIN")
+
+						 // Permite que apenas GERENTE e ADMIN acessem GET/usuarios/id
+						.requestMatchers(HttpMethod.GET, "/usuarios/*")
+						    .hasAnyRole("GERENTE", "ADMIN")
+						    
+						.requestMatchers(HttpMethod.POST, "/pedidos")
+						    .hasAnyRole("CLIENTE", "ATENDENTE")
 					
-					.requestMatchers(HttpMethod.PATCH, "/pedidos/*/status")
-						.hasAnyRole("COZINHEIRO", "GERENTE", "ADMIN")
+						.requestMatchers(HttpMethod.PATCH, "/pedidos/*/status")
+						    .hasAnyRole("COZINHEIRO", "GERENTE", "ADMIN")
 						
-					.requestMatchers("/admin/**")
-					    .hasRole("ADMIN")
+						.requestMatchers("/admin/**")
+						    .hasRole("ADMIN")
 					
 					.anyRequest().authenticated()
 				)

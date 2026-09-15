@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,10 +14,12 @@ import com.example.raizes_do_nordeste.domain.entity.ItemPedido;
 import com.example.raizes_do_nordeste.domain.entity.Pedido;
 import com.example.raizes_do_nordeste.domain.entity.Produto;
 import com.example.raizes_do_nordeste.domain.entity.Unidade;
+import com.example.raizes_do_nordeste.domain.entity.Usuario;
 import com.example.raizes_do_nordeste.domain.repository.EstoqueRepository;
 import com.example.raizes_do_nordeste.domain.repository.PedidoRepository;
 import com.example.raizes_do_nordeste.domain.repository.ProdutoRepository;
 import com.example.raizes_do_nordeste.domain.repository.UnidadeRepository;
+import com.example.raizes_do_nordeste.domain.repository.UsuarioRepository;
 
 
 
@@ -26,21 +30,34 @@ public class PedidoService {
 	private final ProdutoRepository produtoRepository ;
 	private final UnidadeRepository unidadeRepository;
 	private final EstoqueRepository estoqueRepository;
+	private final UsuarioRepository usuarioRepository;
 
 	public PedidoService(
 			PedidoRepository pedidoRepository,
 			ProdutoRepository produtoRepository,
 			UnidadeRepository unidadeRepository,
-			EstoqueRepository estoqueRepository) {
+			EstoqueRepository estoqueRepository,
+			UsuarioRepository usuarioRepository) {
 		
 		this.pedidoRepository = pedidoRepository;
 		this.produtoRepository = produtoRepository;
 		this.unidadeRepository = unidadeRepository;
 		this.estoqueRepository = estoqueRepository;
+		this.usuarioRepository = usuarioRepository;
 	}
 	
 	@Transactional
 	public Pedido criarPedido(Pedido pedido) {
+		
+		Authentication authentication =
+	            SecurityContextHolder.getContext().getAuthentication();
+
+	    Long usuarioId = Long.valueOf(authentication.getName());
+
+	    Usuario cliente = usuarioRepository.findById(usuarioId)
+	            .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
+
+	    pedido.setCliente(cliente);
 		
 		// ver se unidade existe
 		Unidade unidade = unidadeRepository.findById(pedido.getUnidade().getId())
