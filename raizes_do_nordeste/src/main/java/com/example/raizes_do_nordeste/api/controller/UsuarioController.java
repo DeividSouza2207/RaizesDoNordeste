@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.raizes_do_nordeste.api.dto.CriarUsuarioRequest;
+import com.example.raizes_do_nordeste.api.dto.UsuarioResponse;
 import com.example.raizes_do_nordeste.application.service.UsuarioService;
 import com.example.raizes_do_nordeste.domain.entity.Usuario;
 
@@ -26,14 +28,32 @@ public class UsuarioController {
 	}
 	
 	@PostMapping
-	public ResponseEntity<Usuario> cadastrar(
-			@RequestBody Usuario usuario) {
+	public ResponseEntity<UsuarioResponse> cadastrar(
+			@RequestBody CriarUsuarioRequest request) {
+		
+		Usuario usuario = new Usuario();
+		
+		usuario.setNome(request.getNome());
+		usuario.setEmail(request.getEmail());
+		usuario.setSenha(request.getSenha());
+		usuario.setConsentimentoLGPD(request.isConsentimentoLGPD());
+		usuario.setRole(request.getRole());
+		
 		
 		Usuario usuarioCadastrado = usuarioService.cadastrarCliente(usuario);
 		
+		UsuarioResponse response = new UsuarioResponse(
+				usuarioCadastrado.getId(),
+				usuarioCadastrado.getNome(),
+				usuarioCadastrado.getEmail(),
+				usuarioCadastrado.isAtivo(),
+				usuarioCadastrado.isConsentimentoLGPD(),
+				usuarioCadastrado.getRole()
+			);
+		
 		return ResponseEntity
 				.status(HttpStatus.CREATED)
-				.body(usuarioCadastrado);
+				.body(response);
 	}
 	
 	 @GetMapping

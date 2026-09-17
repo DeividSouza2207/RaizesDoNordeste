@@ -7,6 +7,7 @@ import java.util.List;
 
 import com.example.raizes_do_nordeste.domain.enums.CanalPedido;
 import com.example.raizes_do_nordeste.domain.enums.StatusPedido;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -54,6 +55,7 @@ public class Pedido {
 	@OneToMany(mappedBy ="pedido",
 			cascade = CascadeType.ALL,
 			orphanRemoval = true)
+	@JsonManagedReference
 	private List<ItemPedido> itens = new ArrayList<>();	
 	
 	

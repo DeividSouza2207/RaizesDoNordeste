@@ -2,6 +2,8 @@ package com.example.raizes_do_nordeste.domain.entity;
 
 import java.math.BigDecimal;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -21,6 +23,7 @@ public class ItemPedido {
 	
 	@ManyToOne(optional = false)
 	@JoinColumn(name = "pedido_id", nullable = false)
+	@JsonBackReference
 	private Pedido pedido;
 	
 	@ManyToOne(optional = false)

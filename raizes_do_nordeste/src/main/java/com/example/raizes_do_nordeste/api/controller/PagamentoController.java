@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.raizes_do_nordeste.api.dto.PagamentoResponse;
 import com.example.raizes_do_nordeste.application.service.PagamentoService;
 import com.example.raizes_do_nordeste.domain.entity.Pagamento;
 
@@ -22,11 +23,18 @@ public class PagamentoController {
 	}
 	
 	@PostMapping("/{pedidoId}")
-	public ResponseEntity<Pagamento> efetuarPagamento(@PathVariable Long pedidoId) {
+	public ResponseEntity<PagamentoResponse> efetuarPagamento(@PathVariable Long pedidoId) {
 		
 		Pagamento pagamento = pagamentoService.efetuarPagamento(pedidoId);
 		
-		return ResponseEntity.status(HttpStatus.CREATED).body(pagamento);
+		PagamentoResponse response = new PagamentoResponse(
+				pagamento.getId(),
+				pagamento.getPedido().getId(),
+				pagamento.getValor(),
+				pagamento.getStatus(),
+				pagamento.getDataHora());
+		
+		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 		
 	}
 

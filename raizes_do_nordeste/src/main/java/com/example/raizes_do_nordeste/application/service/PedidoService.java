@@ -9,12 +9,17 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.raizes_do_nordeste.api.dto.CriarPedidoRequest;
+import com.example.raizes_do_nordeste.api.dto.ItemPedidoRequest;
+import com.example.raizes_do_nordeste.api.dto.ItemPedidoResponse;
+import com.example.raizes_do_nordeste.api.dto.PedidoResponse;
 import com.example.raizes_do_nordeste.domain.entity.Estoque;
 import com.example.raizes_do_nordeste.domain.entity.ItemPedido;
 import com.example.raizes_do_nordeste.domain.entity.Pedido;
 import com.example.raizes_do_nordeste.domain.entity.Produto;
 import com.example.raizes_do_nordeste.domain.entity.Unidade;
 import com.example.raizes_do_nordeste.domain.entity.Usuario;
+import com.example.raizes_do_nordeste.domain.enums.StatusPedido;
 import com.example.raizes_do_nordeste.domain.repository.EstoqueRepository;
 import com.example.raizes_do_nordeste.domain.repository.PedidoRepository;
 import com.example.raizes_do_nordeste.domain.repository.ProdutoRepository;
@@ -47,51 +52,63 @@ public class PedidoService {
 	}
 	
 	@Transactional
-	public Pedido criarPedido(Pedido pedido) {
+	public Pedido criarPedido(CriarPedidoRequest request) {
 		
 		Authentication authentication =
 	            SecurityContextHolder.getContext().getAuthentication();
 
 	    Long usuarioId = Long.valueOf(authentication.getName());
-
+	   
 	    Usuario cliente = usuarioRepository.findById(usuarioId)
+	    		
 	            .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
-
-	    pedido.setCliente(cliente);
 		
-		// ver se unidade existe
-		Unidade unidade = unidadeRepository.findById(pedido.getUnidade().getId())
+		// ver se unidade existe 
+		Unidade unidade = unidadeRepository.findById(request.getUnidadeId())
 				.orElseThrow(() -> new RuntimeException("Unidade não foi encontrada"));
 		
 		// ver se a unidade está ativa 
 		if(!unidade.isAtivo()) {
-			throw new RuntimeException("A unidade está ativa");
+			throw new RuntimeException("A unidade está inativa");
+		}
+		
+		if(request.getCanalPedido() == null) {
+			throw new RuntimeException("O canal do pedido é obrigatório");
 		}
 		
 		// Ver se pedido possui itens
-		if(pedido.getItens() == null || pedido.getItens().isEmpty()) {
+		if(request.getItens() == null || request.getItens().isEmpty()) {
 			throw new RuntimeException("O pedido tem que possuir ao menos um item");
 		}
 		
+		Pedido pedido = new Pedido();
+		
+		pedido.setCliente(cliente);
+		pedido.setUnidade(unidade);
+		pedido.setCanalPedido(request.getCanalPedido());
+		pedido.setStatus(StatusPedido.AGUARDANDO_PAGAMENTO);
+		
 		BigDecimal valorTotal = BigDecimal.ZERO;
+		
 		List<ItemPedido> itensAdicionados= new ArrayList<>();
 		
 		// iterando os pedidos da lista itensPedido
-		for (ItemPedido itemRecebido : pedido.getItens()) {
+		for (ItemPedidoRequest itemRequest : request.getItens()) {
 			
-			if(itemRecebido.getQuantidade() == null ||
-			   itemRecebido.getQuantidade() <=0) {
+			if(itemRequest.getQuantidade() == null ||
+			   itemRequest.getQuantidade() <=0) {
 				throw new RuntimeException("A quantidade precisa ser maior que zero");
 			}
 			
-		Long produtoId = itemRecebido.getProduto().getId();
+		Long produtoId = itemRequest.getProdutoId();
+		
 		
 		Produto produto = produtoRepository.findById(produtoId)
 				.orElseThrow(() -> new RuntimeException("Produto não encontrado" + produtoId));
 		
 		// verificar se o produto está disponível
 		if (!produto.isAtivo()) {
-			throw new RuntimeException("Produto não ativo" + produto.getNome());
+			throw new RuntimeException("Produto inativo" + produto.getNome());
 		}
 		
 		// buscar produto no estoque da unidade
@@ -99,28 +116,28 @@ public class PedidoService {
 				.orElseThrow(() -> new RuntimeException("Produto não está disponível nesta unidade"));
 		
 		// verificar estoque
-		if (estoque.getQuantidade() < itemRecebido.getQuantidade()) {
+		if (estoque.getQuantidade() < itemRequest.getQuantidade()) {
 			throw new RuntimeException("Estoque não é suficiente" + produto.getNome());
 		}
 		
 		BigDecimal valorUnitario = produto.getPreco();
 		
 		BigDecimal subtotal = valorUnitario.multiply(
-				BigDecimal.valueOf(itemRecebido.getQuantidade())
+				BigDecimal.valueOf(itemRequest.getQuantidade())
 		);
 		// Criar o item processado		
 		ItemPedido item = new ItemPedido();	
 		
 		item.setPedido(pedido);
 		item.setProduto(produto);
-		item.setQuantidade(itemRecebido.getQuantidade());
+		item.setQuantidade(itemRequest.getQuantidade());
 		item.setValorUnitário(valorUnitario);
 		item.setSubtotal(subtotal);
 		
 		itensAdicionados.add(item);
 		
 		// Diminuir o estoque
-		estoque.setQuantidade(estoque.getQuantidade() - item.getQuantidade());
+		estoque.setQuantidade(estoque.getQuantidade() - itemRequest.getQuantidade());
 		
 		estoqueRepository.save(estoque);
 		
@@ -148,6 +165,71 @@ public class PedidoService {
 				.orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
 	
 	
+	}
+	
+	@Transactional
+	public Pedido atualizarStatus(Long pedidoId, StatusPedido novoStatus) {
+		
+		Pedido pedido = pedidoRepository.findById(pedidoId)
+				.orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
+		
+		StatusPedido statusAtual = pedido.getStatus();
+		
+		if(!transicaoPermitida(statusAtual, novoStatus)) {
+			throw new RuntimeException(
+					"Não é possível alterar o pedido de" + statusAtual + "para" + novoStatus);
+		}
+		
+		pedido.setStatus(novoStatus);
+		
+		return pedidoRepository.save(pedido);
 		
 	}
+	
+	private boolean transicaoPermitida(StatusPedido statusAtual, StatusPedido novoStatus) {
+		
+		if (statusAtual == StatusPedido.PAGAMENTO_APROVADO) {
+			
+			return novoStatus == StatusPedido.EM_PREPARACAO ||
+					novoStatus == StatusPedido.CANCELADO;
+		}
+		
+		if (statusAtual == StatusPedido.EM_PREPARACAO) {
+			
+			return novoStatus == StatusPedido.PRONTO;
+		}
+		
+		if (statusAtual == StatusPedido.PRONTO) {
+			
+			return novoStatus == StatusPedido.ENTREGUE;
+		}
+		
+		return false;
+	}
+	
+	public PedidoResponse converterParaResponse(Pedido pedido) {
+		
+		List<ItemPedidoResponse> itens = pedido.getItens()
+				.stream()
+				.map(item -> new ItemPedidoResponse(
+						item.getProduto().getId(),
+						item.getProduto().getNome(),
+						item.getQuantidade(),
+						item.getValorUnitário(),
+						item.getSubtotal())
+						)
+				.toList();
+		
+		return new PedidoResponse(
+				pedido.getId(),
+				pedido.getCliente().getId(),
+				pedido.getUnidade().getId(),
+				pedido.getUnidade().getNome(),
+				pedido.getCanalPedido(),
+				pedido.getStatus(),
+				pedido.getValorTotal(),
+				pedido.getDataCriacao(),
+				itens);
+	}
 }
+
