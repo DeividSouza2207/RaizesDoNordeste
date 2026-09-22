@@ -14,8 +14,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.raizes_do_nordeste.application.service.ProdutoService;
 import com.example.raizes_do_nordeste.domain.entity.Produto;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 @RestController
 @RequestMapping({"/produtos"})
+@SecurityRequirement(name = "bearerAuth")
 public class ProdutoController {
 	
 	private final ProdutoService produtoService;
@@ -23,6 +29,16 @@ public class ProdutoController {
 	public ProdutoController(ProdutoService produtoService) {
 		this.produtoService = produtoService;
 	}
+	
+	@Operation(
+			summary = "Cadastra um produto",
+			description = "Cadastra um produto novo no sistema")
+	@ApiResponses({
+		@ApiResponse(responseCode = "201", description ="Produto cadastrado com sucesso"),
+		@ApiResponse(responseCode = "400", description ="Dados inválidos."),
+		@ApiResponse(responseCode = "401", description ="Usuário não autenticado."),
+		@ApiResponse(responseCode = "403", description ="Usuário não tem permissão."),
+	})
 	
 	@PostMapping
 	public ResponseEntity<Produto> criar(@RequestBody Produto produto){
@@ -32,6 +48,15 @@ public class ProdutoController {
 				.body(novoProduto);
 	}
 	
+	@Operation(
+			summary = "Lista os produtos",
+			description = "Mostra os produtos cadastrados")
+	@ApiResponses({
+		@ApiResponse(responseCode = "200", description ="Produto encontrado"),
+		@ApiResponse(responseCode = "401", description ="Usuário não autenticado."),
+		@ApiResponse(responseCode = "403", description ="Usuário não tem permissão."),
+	})
+	
 	@GetMapping
 	public ResponseEntity<List<Produto>> listarTodos(){
 		
@@ -39,6 +64,16 @@ public class ProdutoController {
 		return ResponseEntity.ok(produtos);
 	}
 
+	@Operation(
+			summary = "Encontra um produto pelo ID",
+			description = "Mostra os dados de um produto específico.")
+	@ApiResponses({
+		@ApiResponse(responseCode = "200", description ="Produto encontrado"),
+		@ApiResponse(responseCode = "401", description ="Usuário não autenticado"),
+		@ApiResponse(responseCode = "403", description ="Usuário não tem permissão"),
+		@ApiResponse(responseCode = "404", description ="Produto não encontrado"),
+	})
+	
 	@GetMapping("/{id}")
 	public ResponseEntity<Produto> buscarId(@PathVariable Long id){
 		

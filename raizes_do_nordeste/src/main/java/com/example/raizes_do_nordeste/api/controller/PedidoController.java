@@ -18,8 +18,14 @@ import com.example.raizes_do_nordeste.api.dto.PedidoResponse;
 import com.example.raizes_do_nordeste.application.service.PedidoService;
 import com.example.raizes_do_nordeste.domain.entity.Pedido;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 @RestController
 @RequestMapping("/pedidos")
+@SecurityRequirement(name = "bearerAuth")
 public class PedidoController {
 	
 	private final PedidoService pedidoService;
@@ -27,6 +33,16 @@ public class PedidoController {
 	public  PedidoController(PedidoService pedidoService) {
 		this.pedidoService = pedidoService;
 	}
+	
+	@Operation(
+			summary = "Cria um novo pedido",
+			description = "Além de criar o pedido, valida os produtos e o estoque e também calcula o valor total.")
+	@ApiResponses({
+		@ApiResponse(responseCode = "201", description ="Pedido criado com sucesso."),
+		@ApiResponse(responseCode = "401", description ="Usuário não autenticado."),
+		@ApiResponse(responseCode = "403", description ="Usuário não tem permissão."),
+	})
+	
 	@PostMapping
 	public ResponseEntity<PedidoResponse> criar(@RequestBody CriarPedidoRequest request){
 	
@@ -38,6 +54,15 @@ public class PedidoController {
 				.body(response);
 		
 	}
+	
+	@Operation(
+			summary = "Lista os pedidos",
+			description = "Mostra os pedidos cadastrados.")
+	@ApiResponses({
+		@ApiResponse(responseCode = "200", description ="Pedidos encontrados."),
+		@ApiResponse(responseCode = "401", description ="Usuário não autenticado."),
+		@ApiResponse(responseCode = "403", description ="Usuário não tem permissão."),
+	})
 	
 	@GetMapping
 	public ResponseEntity<List<PedidoResponse>> listarTodos() {
@@ -51,6 +76,15 @@ public class PedidoController {
 		
 	}
 	
+	@Operation(
+			summary = "Encontra o pedido pelo id",
+			description = "Mostra os dados de um pedido específico.")
+	@ApiResponses({
+		@ApiResponse(responseCode = "200", description ="Pedido encontrado."),
+		@ApiResponse(responseCode = "401", description ="Usuário não autenticado."),
+		@ApiResponse(responseCode = "404", description ="Pedido não encontrado."),
+	})
+	
 	@GetMapping("/{id}")
 	public ResponseEntity<PedidoResponse> buscarPorId(@PathVariable Long id) {
 		
@@ -58,6 +92,16 @@ public class PedidoController {
 		
 		return ResponseEntity.ok(pedidoService.converterParaResponse(pedido));
 	}
+	
+	@Operation(
+			summary = "Atualiza o status do pedido.",
+			description = "Atualiza o status do pedido conforme as exigências.")
+	@ApiResponses({
+		@ApiResponse(responseCode = "200", description ="Status atualizado com sucesso."),
+		@ApiResponse(responseCode = "401", description ="Usuário não autenticado."),
+		@ApiResponse(responseCode = "403", description ="Usuário não tem permissão."),
+		@ApiResponse(responseCode = "404", description ="Pedido não encontrado."),
+	})
 	
 	@PatchMapping("/{id}/status")
 	public ResponseEntity<PedidoResponse> atualizarStatus(@PathVariable Long id,

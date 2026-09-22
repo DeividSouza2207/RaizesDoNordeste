@@ -14,8 +14,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.raizes_do_nordeste.application.service.UnidadeService;
 import com.example.raizes_do_nordeste.domain.entity.Unidade;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 @RestController
 @RequestMapping({"/unidades"})
+@SecurityRequirement(name = "bearerAuth")
 public class UnidadeController {
 	
 	private final UnidadeService unidadeService;
@@ -23,6 +29,16 @@ public class UnidadeController {
 	public UnidadeController(UnidadeService unidadeService) {
 		this.unidadeService = unidadeService;
 	}
+	
+	@Operation(
+			summary = "Cadastra uma unidade",
+			description = "Cadastra uma nova unidade no sistema")
+	@ApiResponses({
+		@ApiResponse(responseCode = "201", description ="Unidade cadastrada com sucesso"),
+		@ApiResponse(responseCode = "400", description ="Dados inválidos"),
+		@ApiResponse(responseCode = "401", description ="Usuário não autenticado"),
+		@ApiResponse(responseCode = "403", description ="Usuário não tem permissão"),
+	})
 	
 	@PostMapping
 	public ResponseEntity<Unidade> criar(@RequestBody Unidade unidade){
@@ -33,6 +49,14 @@ public class UnidadeController {
 							  .body(novaUnidade);
 	}
 	
+	@Operation(
+			summary = "Lista as unidades",
+			description = "Mostra as unidades cadastradas")
+	@ApiResponses({
+		@ApiResponse(responseCode = "200", description ="Unidades encontradas"),
+		@ApiResponse(responseCode = "401", description ="Usuário não autenticado"),
+		@ApiResponse(responseCode = "403", description ="Usuário não tem permissão"),
+	})
 	@GetMapping
 	public ResponseEntity<List<Unidade>> listarTodas(){
 		
@@ -40,6 +64,16 @@ public class UnidadeController {
 		return ResponseEntity.ok(unidades);
 		
 	}
+	
+	@Operation(
+			summary = "Busca uma unidade pelo ID",
+			description = "Mostra os dados de uma unidade específica")
+	@ApiResponses({
+		@ApiResponse(responseCode = "200", description ="Unidade encontrada"),
+		@ApiResponse(responseCode = "401", description ="Usuário não autenticado"),
+		@ApiResponse(responseCode = "403", description ="Usuário não tem permissão"),
+		@ApiResponse(responseCode = "404", description ="Unidade não encontrada"),
+	})
 	
 	@GetMapping("/{id}")
 	public ResponseEntity<Unidade> buscarId(@PathVariable Long id){

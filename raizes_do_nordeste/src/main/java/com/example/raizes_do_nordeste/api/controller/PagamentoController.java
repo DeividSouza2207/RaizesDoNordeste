@@ -11,8 +11,14 @@ import com.example.raizes_do_nordeste.api.dto.PagamentoResponse;
 import com.example.raizes_do_nordeste.application.service.PagamentoService;
 import com.example.raizes_do_nordeste.domain.entity.Pagamento;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 @RestController
 @RequestMapping("/pagamentos")
+@SecurityRequirement(name = "bearerAuth")
 public class PagamentoController {
 	
 	private final PagamentoService pagamentoService;
@@ -21,6 +27,16 @@ public class PagamentoController {
 		
 		this.pagamentoService = pagamentoService;
 	}
+	
+	@Operation(
+			summary = "Realiza o pagamento de um pedido",
+			description = "Executa um pagamento MOCK de um pedido que esteja aguardando pagamento.")
+	@ApiResponses({
+		@ApiResponse(responseCode = "201", description ="Pagamento realizado com sucesso."),
+		@ApiResponse(responseCode = "401", description ="Usuário não autenticado."),
+		@ApiResponse(responseCode = "403", description ="Usuário não tem permissão."),
+		@ApiResponse(responseCode = "404", description ="Pedido não encontrado."),
+	})
 	
 	@PostMapping("/{pedidoId}")
 	public ResponseEntity<PagamentoResponse> efetuarPagamento(@PathVariable Long pedidoId) {
