@@ -5,6 +5,6 @@ public enum Role {
 	ATENDENTE,
 	COZINHEIRO,
 	GERENTE,
-	ADMINISTRADOR
+	ADMIN
 
 }

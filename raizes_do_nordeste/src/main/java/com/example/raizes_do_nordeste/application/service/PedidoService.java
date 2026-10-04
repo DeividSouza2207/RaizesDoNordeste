@@ -13,6 +13,8 @@ import com.example.raizes_do_nordeste.api.dto.CriarPedidoRequest;
 import com.example.raizes_do_nordeste.api.dto.ItemPedidoRequest;
 import com.example.raizes_do_nordeste.api.dto.ItemPedidoResponse;
 import com.example.raizes_do_nordeste.api.dto.PedidoResponse;
+import com.example.raizes_do_nordeste.api.exception.RecursoNaoEncontradoException;
+import com.example.raizes_do_nordeste.api.exception.RegraDeNegocioException;
 import com.example.raizes_do_nordeste.domain.entity.Estoque;
 import com.example.raizes_do_nordeste.domain.entity.ItemPedido;
 import com.example.raizes_do_nordeste.domain.entity.Pedido;
@@ -61,15 +63,15 @@ public class PedidoService {
 	   
 	    Usuario cliente = usuarioRepository.findById(usuarioId)
 	    		
-	            .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
+	            .orElseThrow(() -> new RecursoNaoEncontradoException("Cliente não encontrado"));
 		
 		// ver se unidade existe 
 		Unidade unidade = unidadeRepository.findById(request.getUnidadeId())
-				.orElseThrow(() -> new RuntimeException("Unidade não foi encontrada"));
+				.orElseThrow(() -> new RecursoNaoEncontradoException("Unidade não foi encontrada"));
 		
 		// ver se a unidade está ativa 
 		if(!unidade.isAtivo()) {
-			throw new RuntimeException("A unidade está inativa");
+			throw new RegraDeNegocioException("A unidade está inativa");
 		}
 		
 		if(request.getCanalPedido() == null) {
@@ -104,20 +106,20 @@ public class PedidoService {
 		
 		
 		Produto produto = produtoRepository.findById(produtoId)
-				.orElseThrow(() -> new RuntimeException("Produto não encontrado" + produtoId));
+				.orElseThrow(() -> new RecursoNaoEncontradoException("Produto não encontrado: " + produtoId));
 		
 		// verificar se o produto está disponível
 		if (!produto.isAtivo()) {
-			throw new RuntimeException("Produto inativo" + produto.getNome());
+			throw new RegraDeNegocioException("Produto inativo" + produto.getNome());
 		}
 		
 		// buscar produto no estoque da unidade
 		Estoque estoque = estoqueRepository.findByUnidadeAndProduto(unidade, produto)
-				.orElseThrow(() -> new RuntimeException("Produto não está disponível nesta unidade"));
+				.orElseThrow(() -> new RegraDeNegocioException("Produto não está disponível nesta unidade"));
 		
 		// verificar estoque
 		if (estoque.getQuantidade() < itemRequest.getQuantidade()) {
-			throw new RuntimeException("Estoque não é suficiente" + produto.getNome());
+			throw new RegraDeNegocioException("Estoque insuficiente para o produto: " + produto.getNome());
 		}
 		
 		BigDecimal valorUnitario = produto.getPreco();
@@ -162,7 +164,7 @@ public class PedidoService {
 	
 	public Pedido buscarPorId(Long id) {
 		return pedidoRepository.findById(id)
-				.orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
+				.orElseThrow(() -> new RecursoNaoEncontradoException("Pedido não encontrado"));
 	
 	
 	}
@@ -171,12 +173,12 @@ public class PedidoService {
 	public Pedido atualizarStatus(Long pedidoId, StatusPedido novoStatus) {
 		
 		Pedido pedido = pedidoRepository.findById(pedidoId)
-				.orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
+				.orElseThrow(() -> new RecursoNaoEncontradoException("Pedido não encontrado"));
 		
 		StatusPedido statusAtual = pedido.getStatus();
 		
 		if(!transicaoPermitida(statusAtual, novoStatus)) {
-			throw new RuntimeException(
+			throw new RegraDeNegocioException(
 					"Não é possível alterar o pedido de" + statusAtual + "para" + novoStatus);
 		}
 		

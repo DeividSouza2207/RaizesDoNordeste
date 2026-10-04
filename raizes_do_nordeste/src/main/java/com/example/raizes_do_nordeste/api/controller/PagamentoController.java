@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.raizes_do_nordeste.api.dto.PagamentoResponse;
@@ -35,13 +36,15 @@ public class PagamentoController {
 		@ApiResponse(responseCode = "201", description ="Pagamento realizado com sucesso."),
 		@ApiResponse(responseCode = "401", description ="Usuário não autenticado."),
 		@ApiResponse(responseCode = "403", description ="Usuário não tem permissão."),
-		@ApiResponse(responseCode = "404", description ="Pedido não encontrado."),
+		@ApiResponse(responseCode = "404", description ="Pedido não encontrado.")
+		
 	})
 	
 	@PostMapping("/{pedidoId}")
-	public ResponseEntity<PagamentoResponse> efetuarPagamento(@PathVariable Long pedidoId) {
+	public ResponseEntity<PagamentoResponse> efetuarPagamento(@PathVariable Long pedidoId,
+																@RequestParam String resultado) {
 		
-		Pagamento pagamento = pagamentoService.efetuarPagamento(pedidoId);
+		Pagamento pagamento = pagamentoService.efetuarPagamento(pedidoId, resultado);
 		
 		PagamentoResponse response = new PagamentoResponse(
 				pagamento.getId(),

@@ -22,6 +22,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/pedidos")
@@ -44,7 +45,7 @@ public class PedidoController {
 	})
 	
 	@PostMapping
-	public ResponseEntity<PedidoResponse> criar(@RequestBody CriarPedidoRequest request){
+	public ResponseEntity<PedidoResponse> criar(@Valid @RequestBody CriarPedidoRequest request){
 	
 		Pedido novoPedido = pedidoService.criarPedido(request);
 		

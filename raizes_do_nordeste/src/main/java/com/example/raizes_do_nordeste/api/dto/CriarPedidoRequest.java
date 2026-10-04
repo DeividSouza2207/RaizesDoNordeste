@@ -4,11 +4,20 @@ import java.util.List;
 
 import com.example.raizes_do_nordeste.domain.enums.CanalPedido;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+
 public class CriarPedidoRequest {
 	
+	@NotNull
 	private Long unidadeId;
+	
+	@NotNull
 	private CanalPedido canalPedido;
-	private List<ItemPedidoRequest> itens;
+	
+	@NotEmpty
+	private List<@Valid ItemPedidoRequest> itens;
 	
 	public CriarPedidoRequest() {
 		

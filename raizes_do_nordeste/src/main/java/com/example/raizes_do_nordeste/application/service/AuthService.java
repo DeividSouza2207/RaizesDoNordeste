@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.raizes_do_nordeste.api.dto.LoginRequest;
 import com.example.raizes_do_nordeste.api.dto.LoginResponse;
+import com.example.raizes_do_nordeste.api.exception.CredenciaisInvalidasException;
 import com.example.raizes_do_nordeste.domain.entity.Usuario;
 import com.example.raizes_do_nordeste.domain.repository.UsuarioRepository;
 import com.example.raizes_do_nordeste.security.JwtService;
@@ -31,17 +32,17 @@ public class AuthService {
 		Usuario usuario = usuarioRepository
 				.findByEmail(request.getEmail())
 				.orElseThrow(() ->
-						new RuntimeException("E-mail ou senha inválidos"));
+						new CredenciaisInvalidasException("E-mail ou senha inválidos"));
 		
 		if(!usuario.isAtivo()) {
-			throw new RuntimeException("Usuário inativo");
+			throw new CredenciaisInvalidasException("E-mail ou senha inválido");
 		}
 		
 		boolean senhaCorreta = passwordEncoder.matches(request.getSenha(),
 													   usuario.getSenha());
 		
 		if(!senhaCorreta) {
-			throw new RuntimeException("E-mail ou senha inválidos");
+			throw new CredenciaisInvalidasException("E-mail ou senha inválidos");
 		}
 		
 		String token = jwtService.gerarToken(usuario);

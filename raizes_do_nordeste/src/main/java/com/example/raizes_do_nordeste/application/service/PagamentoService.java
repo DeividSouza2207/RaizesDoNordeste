@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.raizes_do_nordeste.api.exception.RecursoNaoEncontradoException;
+import com.example.raizes_do_nordeste.api.exception.RegraDeNegocioException;
 import com.example.raizes_do_nordeste.domain.entity.Pagamento;
 import com.example.raizes_do_nordeste.domain.entity.Pedido;
 import com.example.raizes_do_nordeste.domain.enums.StatusPagamento;
@@ -27,19 +29,19 @@ public class PagamentoService {
 	}
 	
 	@Transactional
-	public Pagamento efetuarPagamento(Long pedidoId) {
+	public Pagamento efetuarPagamento(Long pedidoId, String resultado) {
 		
 		// buscar o pedido
 		Pedido pedido = pedidoRepository.findById(pedidoId)
-				.orElseThrow(() -> new RuntimeException("Pedido não encontrado"));
+				.orElseThrow(() -> new RecursoNaoEncontradoException("Pedido não encontrado"));
 		
 		if (pedido.getStatus() != StatusPedido.AGUARDANDO_PAGAMENTO) {
-			throw new RuntimeException("Pedido aguardando pagamento");
+			throw new RegraDeNegocioException("pagamento já foi realizado");
 		}
 		
 		// Verificar se este pedido já foi pago
 		if (pagamentoRepository.findByPedido(pedido).isPresent()) {
-			throw new RuntimeException("Este pedido já possui pagamento");
+			throw new RegraDeNegocioException("Este pedido já possui pagamento");
 		}
 		
 		// criar o pagamento
@@ -49,11 +51,21 @@ public class PagamentoService {
 		pagamento.setValor(pedido.getValorTotal());
 		pagamento.setDataHora(LocalDateTime.now());
 		
-		// simular o gateway
-		pagamento.setStatus(StatusPagamento.APROVADO);
+		if ("APROVADO".equalsIgnoreCase(resultado)) {
+			
+			pagamento.setStatus(StatusPagamento.APROVADO);
+			pedido.setStatus(StatusPedido.PAGAMENTO_APROVADO);
+		}
 		
-		// atualizar o status dos pedido
-		pedido.setStatus(StatusPedido.PAGAMENTO_APROVADO);
+		else if ("NEGADO".equalsIgnoreCase(resultado)) {
+			
+			pagamento.setStatus(StatusPagamento.NEGADO);
+			pedido.setStatus(StatusPedido.CANCELADO);
+		}
+		
+		else {
+			throw new RegraDeNegocioException("Opção inválida. Digite APROVADO ou NEGADO.");
+		}
 		
 		// salvar o pedido
 		pedidoRepository.save(pedido);
