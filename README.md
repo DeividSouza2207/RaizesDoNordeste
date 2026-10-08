@@ -317,5 +317,5 @@ O *Idpedido* é preenchido automaticamente após a criação de um pedido.
 -Recursos adicionais, como programa de fidelidade, podem ser <br>
 implementados em versões futuras.<br> 
 
-##Autor
+Autor  
 DEIVID LUAN DE SOUZA
